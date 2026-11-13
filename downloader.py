@@ -99,6 +99,7 @@ def build_ydl_opts(
         "ignoreerrors": allow_playlist,
         "quiet": quiet,
         "no_warnings": quiet,
+        "js_runtimes": {"deno": {"path": None}, "node": {"path": None}},
     }
 
     if cookie_file is not None:
