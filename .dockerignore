@@ -1,0 +1,10 @@
+.git/
+.venv/
+venv/
+__pycache__/
+*.pyc
+downloads/
+data/
+cookies.txt
+*.mp3
+*.mp4
