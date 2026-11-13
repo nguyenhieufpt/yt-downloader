@@ -44,7 +44,8 @@ File tải về tự động lưu vào thư mục `./downloads` ngay trên máy 
 ## (Tùy chọn) Chạy trực tiếp không qua Docker
 Nếu muốn chạy bản Desktop GUI (`PySide6`) hoặc CLI trực tiếp trên máy:
 1. Cài `ffmpeg` (`sudo apt install ffmpeg` / `brew install ffmpeg` / `winget install Gyan.FFmpeg`).
-2. Cài thư viện:
+2. Cài **Deno** (khuyên dùng) hoặc **Node.js bản mới** để `yt-dlp` giải mã JS challenge của YouTube.
+3. Cài thư viện:
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate
@@ -53,3 +54,36 @@ Nếu muốn chạy bản Desktop GUI (`PySide6`) hoặc CLI trực tiếp trên
    # hoặc:
    python main.py --mp3 "https://www.youtube.com/watch?v=VIDEO_ID"
    ```
+
+---
+
+## Xử lý sự cố thường gặp (Troubleshooting)
+
+### 1. Xem log chi tiết khi giao diện báo lỗi bị rút gọn
+```bash
+docker logs --tail 50 yt-downloader
+```
+Hoặc chạy kiểm tra trực tiếp 1 video bên trong container để xem dòng `WARNING` / `[debug]`:
+```bash
+docker exec yt-downloader yt-dlp -F -v --cookies /app/data/cookies.txt "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+### 2. Lỗi `Requested format is not available` / `Signature solving failed` / `n challenge solving failed`
+- **Nguyên nhân:** `yt-dlp` hoặc JS runtime (`deno` / `node`) đã cũ so với player JS mới của YouTube (hoặc dùng bản Node cũ bị `yt-dlp` báo `unsupported`).
+- **Cách xử lý (Docker):** Rebuild không cache để kéo `yt-dlp`, `yt-dlp-ejs` và `deno` mới nhất:
+  ```bash
+  docker compose build --no-cache && docker compose up -d
+  ```
+- **Cách xử lý (chạy trực tiếp không qua Docker):**
+  ```bash
+  python main.py --update
+  ```
+  Và đảm bảo máy đã cài **Deno** (hoặc **Node.js >= 22/24**) nằm trong `PATH`.
+
+### 3. Lỗi `HTTP Error 403: Forbidden`
+1. Cập nhật `yt-dlp` mới nhất (`docker compose build --no-cache && docker compose up -d` hoặc `python main.py --update`).
+2. Nếu vẫn lỗi, export lại file `cookies.txt` mới từ Chrome và upload lại.
+
+### 4. Lỗi `Sign in to confirm you're not a bot` hoặc Cookie hết hạn
+- Mở Chrome đang đăng nhập YouTube → export lại `cookies.txt` mới (chuẩn Netscape) → bấm **Chọn Cookie...** để nạp lại.
+- Nếu tải quá nhiều video liên tục trong thời gian ngắn, nên nghỉ một lúc hoặc dùng một tài khoản Google phụ trên profile Chrome riêng.
